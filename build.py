@@ -1,6 +1,7 @@
 """Lab List build: pulls the latest NBA box scores + schedule and writes index.html.
 Usage: python build.py [--embed]   (--embed inlines photos/logos as data URIs)"""
 import pandas as pd, json, sys, io, base64, datetime, urllib.request, concurrent.futures, os
+hm=lambda t:t.strftime('%I:%M %p').lstrip('0')
 EMBED='--embed' in sys.argv
 TZ='America/Toronto'
 REL='https://github.com/sportsdataverse/sportsdataverse-data/releases/download'
@@ -51,8 +52,8 @@ for p,r in pl.iterrows():
 s=sch.copy(); s['gd']=pd.to_datetime(s.game_date_time).dt.tz_convert(TZ)
 lo=today.strftime('%Y-%m-%d'); hi=(today+pd.Timedelta(days=21)).strftime('%Y-%m-%d')
 s=s[(s.gd.dt.strftime('%Y-%m-%d')>=lo)&(s.gd.dt.strftime('%Y-%m-%d')<=hi)]
-sched=[[r.gd.strftime('%Y-%m-%d'),r.gd.strftime('%-I:%M %p'),ti[r.away_abbreviation],ti[r.home_abbreviation]] for _,r in s.sort_values('gd').iterrows() if r.home_abbreviation in ti and r.away_abbreviation in ti]
-data={'asof':played.game_date.max(),'built':today.strftime('%b %-d, %-I:%M %p ET'),'teams':[tinfo[t][:4] for t in tl],'players':players,'games':games,'rows':rows,'dnp':dnp,'reasons':reasons,'status':status,'sched':sched}
+sched=[[r.gd.strftime('%Y-%m-%d'),hm(r.gd),ti[r.away_abbreviation],ti[r.home_abbreviation]] for _,r in s.sort_values('gd').iterrows() if r.home_abbreviation in ti and r.away_abbreviation in ti]
+data={'asof':played.game_date.max(),'built':today.strftime('%b ')+str(today.day)+', '+hm(today)+' ET','pids':[int(p) for p in pids],'gids':[str(x) for x in gids],'teams':[tinfo[t][:4] for t in tl],'players':players,'games':games,'rows':rows,'dnp':dnp,'reasons':reasons,'status':status,'sched':sched}
 photo_url=lambda p:f'https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/{int(p)}.png&w=240&h=176'
 logo_url=lambda t:'https://a.espncdn.com/combiner/i?img='+tinfo[t][4].split('espncdn.com')[1]+'&w=96&h=96'
 photos={};logos={}
