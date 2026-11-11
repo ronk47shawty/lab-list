@@ -1,0 +1,23 @@
+name: Update stats
+on:
+  schedule:
+    - cron: "0 */2 * * *"   # every 2 hours
+  workflow_dispatch:         # lets you run it manually from the Actions tab
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas pyarrow pillow
+      - run: python build.py
+      - run: |
+          git config user.name "lab-list-bot"
+          git config user.email "lab-list-bot@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Update stats"
+          git push
